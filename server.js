@@ -2,8 +2,9 @@ let express = require('express');
 let app = express();
 let bodyParser = require('body-parser');
 let assignment = require('./routes/assignments');
-
+const VerifyToken = require('./auth/VerifyToken');
 let mongoose = require('mongoose');
+
 mongoose.Promise = global.Promise;
 //mongoose.set('debug', true);
 
@@ -42,18 +43,24 @@ app.use(bodyParser.json());
 
 let port = process.env.PORT || 8010;
 
+
+
 // les routes
 const prefix = '/api';
 
 app.route(prefix + '/assignments')
-  .get(assignment.getAssignments)
-  .post(assignment.postAssignment)
-  .put(assignment.updateAssignment);
+  .get(VerifyToken, assignment.getAssignments)
+  .post(VerifyToken, assignment.postAssignment)
+  .put(VerifyToken, assignment.updateAssignment);
 
 app.route(prefix + '/assignments/:id')
-  .get(assignment.getAssignment)
-  .delete(assignment.deleteAssignment);
+  .get(VerifyToken, assignment.getAssignment)
+  .delete(VerifyToken, assignment.deleteAssignment);
 
+
+var AuthController = require('./auth/AuthController');
+
+app.use('/api/auth', AuthController);
 
 // On démarre le serveur
 app.listen(port, "0.0.0.0");
