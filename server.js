@@ -4,6 +4,9 @@ let bodyParser = require('body-parser');
 let assignment = require('./routes/assignments');
 const VerifyToken = require('./auth/VerifyToken');
 let mongoose = require('mongoose');
+const cors = require('cors');
+
+app.use(cors());
 
 mongoose.Promise = global.Promise;
 //mongoose.set('debug', true);

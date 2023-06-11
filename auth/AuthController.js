@@ -19,7 +19,8 @@ router.post('/register', function (req, res) {
     User.create({
         name: req.body.name,
         email: req.body.email,
-        password: hashedPassword
+        password: hashedPassword,
+        role: req.body.role
     },
         function (err, user) {
             if (err) return res.status(500).send("There was a problem registering the user.")
@@ -27,7 +28,9 @@ router.post('/register', function (req, res) {
             var token = jwt.sign({ id: user._id }, config.secret, {
                 expiresIn: 86400 // expires in 24 hours
             });
-            res.status(200).send({ auth: true, token: token });
+            const userToSend = JSON.parse(JSON.stringify(user));
+            delete userToSend.password
+            res.status(200).send({ auth: true, token: token, user: userToSend });
         });
 });
 
@@ -43,8 +46,8 @@ router.get('/me', VerifyToken, function (req, res, next) {
 router.post('/login', function (req, res) {
 
     User.findOne({ email: req.body.email }, function (err, user) {
-        if (err) return res.status(500).send('Error on the server.');
-        if (!user) return res.status(404).send('No user found.');
+        if (err) return res.status(500).send({ message: 'Error on the server.' });
+        if (!user) return res.status(404).send({ message: 'Utilisateur non trouvé' });
 
         if (!req.body.password) return res.status(401).send({ auth: false, token: null });
         var passwordIsValid = bcrypt.compareSync(req.body.password, user.password);
@@ -53,8 +56,9 @@ router.post('/login', function (req, res) {
         var token = jwt.sign({ id: user._id }, config.secret, {
             expiresIn: 86400 // expires in 24 hours
         });
-
-        res.status(200).send({ auth: true, token: token });
+        const userToSend = JSON.parse(JSON.stringify(user));
+        delete userToSend.password
+        res.status(200).send({ auth: true, token: token, user: userToSend });
     });
 
 });

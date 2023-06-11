@@ -12,7 +12,18 @@ function getAssignmentsSansPagination(req, res) {
 }
 
 function getAssignments(req, res) {
+
     var aggregateQuery = Assignment.aggregate();
+
+    // Filtrage par l'attribut "rendu"
+
+    var renduFilter = req.query.rendu ? JSON.parse(req.query.rendu) : undefined; // Valeur du filtre passée dans la requête
+
+
+    if (renduFilter !== undefined) {
+        aggregateQuery.match({ rendu: renduFilter });
+    }
+
     Assignment.aggregatePaginate(aggregateQuery,
         {
             page: parseInt(req.query.page) || 1,
@@ -26,7 +37,6 @@ function getAssignments(req, res) {
         }
     );
 }
-
 
 // Récupérer un assignment par son id (GET)
 function getAssignment(req, res) {
