@@ -1,5 +1,4 @@
 let Assignment = require('../model/assignment');
-
 // Récupérer tous les assignments (GET)
 function getAssignmentsSansPagination(req, res) {
     Assignment.find((err, assignments) => {

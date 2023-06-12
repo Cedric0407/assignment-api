@@ -4,7 +4,7 @@ var bodyParser = require('body-parser');
 
 router.use(bodyParser.urlencoded({ extended: false }));
 router.use(bodyParser.json());
-var User = require('../user/User');
+var User = require('../model/user');
 
 var jwt = require('jsonwebtoken');
 var bcrypt = require('bcryptjs');
@@ -52,13 +52,13 @@ router.post('/login', function (req, res) {
         if (!req.body.password) return res.status(401).send({ auth: false, token: null });
         var passwordIsValid = bcrypt.compareSync(req.body.password, user.password);
         if (!passwordIsValid) return res.status(401).send({ auth: false, token: null });
-
+        const expirationTime = 86400;
         var token = jwt.sign({ id: user._id }, config.secret, {
-            expiresIn: 86400 // expires in 24 hours
+            expiresIn: expirationTime  // expires in 24 hours
         });
         const userToSend = JSON.parse(JSON.stringify(user));
         delete userToSend.password
-        res.status(200).send({ auth: true, token: token, user: userToSend });
+        res.status(200).send({ auth: true, token: token, user: userToSend, expirationTime });
     });
 
 });
