@@ -6,6 +6,7 @@ router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
 var User = require('../model/user');
 var config = require('../constant/config');
+var bcrypt = require('bcryptjs');
 
 const multer = require('multer');
 
@@ -33,13 +34,18 @@ function postUser(req, res) {
             // An unknown error occurred during file upload
             return res.status(500).send("There was a problem adding the information to the database.");
         }
-
-        User.create({
+        const newUser = {
             nom: req.body.nom,
             email: req.body.email,
             role: req.body.role,
             imagePath: config.BaseUrl + req.file.path
-        },
+        };
+
+        if(req.body.password){
+            newUser.password = bcrypt.hashSync(req.body.password, 8)
+        }
+
+        User.create(newUser,
             function (err, user) {
                 if (err) return res.status(500).send("There was a problem adding the information to the database.");
                 res.status(200).send(user);

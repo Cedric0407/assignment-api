@@ -1,4 +1,23 @@
 let Assignment = require('../model/assignment');
+
+var config = require('../constant/config');
+
+const multer = require('multer');
+
+// Configuration de Multer pour gérer l'upload des images
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/'); // dossier de destination pour les images
+    },
+    filename: function (req, file, cb) {
+        const fileName = Date.now() + '-' + file.originalname;
+        cb(null, fileName);
+    }
+});
+
+const upload = multer({ storage: storage });
+
+
 // Récupérer tous les assignments (GET)
 function getAssignmentsSansPagination(req, res) {
     Assignment.find((err, assignments) => {
@@ -49,20 +68,34 @@ function getAssignment(req, res) {
 
 // Ajout d'un assignment (POST)
 function postAssignment(req, res) {
-    let assignment = new Assignment();
-    assignment.id = req.body.id;
-    assignment.nom = req.body.nom;
-    assignment.dateDeRendu = req.body.dateDeRendu;
-    assignment.rendu = req.body.rendu;
 
-    console.log("POST assignment reçu :");
-    console.log(assignment)
-
-    assignment.save((err) => {
-        if (err) {
-            res.send('cant post assignment ', err);
+    upload.single('file')(req, res, function (err) {
+        if (err instanceof multer.MulterError) {
+            // A Multer error occurred during file upload
+            return res.status(500).send("There was a problem uploading the file.");
+        } else if (err) {
+            // An unknown error occurred during file upload
+            return res.status(500).send("There was a problem adding the information to the database.");
         }
-        res.json({ message: `${assignment.nom} saved!` })
+
+        let assignment = new Assignment();
+        assignment.id = req.body.id;
+        assignment.nom = req.body.nom;
+        assignment.dateDeRendu = req.body.dateDeRendu;
+        assignment.rendu = req.body.rendu;
+        assignment.matiere = JSON.parse(req.body.matiere);
+        assignment.imagePath = config.BaseUrl + req.file.path
+
+        console.log("POST assignment reçu :");
+        console.log(assignment)
+
+        assignment.save((err) => {
+            if (err) {
+                res.send('cant post assignment ', err);
+            }
+            res.json({ message: `${assignment.nom} saved!` })
+        })
+
     })
 }
 
