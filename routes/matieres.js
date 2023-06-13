@@ -70,8 +70,8 @@ function postMatiere(req, res) {
 
         let matiere = new Matiere();
         matiere.nom = req.body.nom;
-        matiere.professeur = req.body.professeur;
-        imagePath: config.BaseUrl + req.file.path
+        matiere.professeur = JSON.parse(req.body.professeur);
+        matiere.imagePath = config.BaseUrl + req.file.path
 
         matiere.save((err) => {
             if (err) {
