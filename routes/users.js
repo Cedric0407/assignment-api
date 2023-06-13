@@ -35,7 +35,7 @@ function postUser(req, res) {
         }
 
         User.create({
-            name: req.body.name,
+            nom: req.body.nom,
             email: req.body.email,
             role: req.body.role,
             imagePath: config.BaseUrl + req.file.path
