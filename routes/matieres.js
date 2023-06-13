@@ -1,7 +1,24 @@
 let Matiere = require('../model/matiere');
 
+var config = require('../constant/config');
+
+const multer = require('multer');
+
+// Configuration de Multer pour gérer l'upload des images
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/'); // dossier de destination pour les images
+    },
+    filename: function (req, file, cb) {
+        const fileName = Date.now() + '-' + file.originalname;
+        cb(null, fileName);
+    }
+});
+
+const upload = multer({ storage: storage });
+
 // Récupérer tous les matieres (GET)
-function getMatieresSansPagination(req, res) {
+function getMatieres(req, res) {
     Matiere.find((err, matieres) => {
         if (err) {
             res.send(err)
@@ -11,7 +28,7 @@ function getMatieresSansPagination(req, res) {
     });
 }
 
-function getMatieres(req, res) {
+function getMatieresAvecPagination(req, res) {
 
     var aggregateQuery = Matiere.aggregate();
 
@@ -41,21 +58,28 @@ function getMatiere(req, res) {
 
 // Ajout d'un matiere (POST)
 function postMatiere(req, res) {
-    let matiere = new Matiere();
-    matiere.id = req.body.id;
-    matiere.nom = req.body.nom;
-    matiere.dateDeRendu = req.body.dateDeRendu;
-    matiere.rendu = req.body.rendu;
 
-    console.log("POST matiere reçu :");
-    console.log(matiere)
-
-    matiere.save((err) => {
-        if (err) {
-            res.send('cant post matiere ', err);
+    upload.single('image')(req, res, function (err) {
+        if (err instanceof multer.MulterError) {
+            // A Multer error occurred during file upload
+            return res.status(500).send("There was a problem uploading the file.");
+        } else if (err) {
+            // An unknown error occurred during file upload
+            return res.status(500).send("There was a problem adding the information to the database.");
         }
-        res.json({ message: `${matiere.nom} saved!` })
-    })
+
+        let matiere = new Matiere();
+        matiere.nom = req.body.nom;
+        matiere.professeur = req.body.professeur;
+        imagePath: config.BaseUrl + req.file.path
+
+        matiere.save((err) => {
+            if (err) {
+                res.send('cant post matiere ', err);
+            }
+            res.json({ message: `${matiere.nom} saved!` })
+        })
+    });
 }
 
 // Update d'un matiere (PUT)
