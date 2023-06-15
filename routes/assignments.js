@@ -4,6 +4,8 @@ var config = require('../constant/config');
 
 const multer = require('multer');
 
+const cors = require('cors')({ origin: true })
+
 // Configuration de Multer pour gérer l'upload des images
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -29,17 +31,73 @@ function getAssignmentsSansPagination(req, res) {
     });
 }
 
+function postAssignments(req, res) {
+
+    cors(req, res, () => {
+        var aggregateQuery = Assignment.aggregate();
+
+        // Filtrage 
+
+        var renduFilter = req.body.rendu ? JSON.parse(req.body.rendu) : undefined; // Valeur du filtre passée dans la requête
+        var idMatieres = req.body.idMatieres;
+        var idEtudiant = req.body.idEtudiant;
+        console.log(req.body)
+
+        const filter = {};
+
+        if (renduFilter !== undefined) {
+            filter.rendu = renduFilter;
+        }
+        if (idMatieres) {
+            filter["matiere._id"] = { $in: idMatieres };
+        }
+        if (idEtudiant) {
+            filter["auteur._id"] = { $eq: idEtudiant };
+        }
+
+        if (Object.keys(filter).length) {
+            aggregateQuery.match(filter);
+        }
+
+        Assignment.aggregatePaginate(aggregateQuery,
+            {
+                page: parseInt(req.query.page) || 1,
+                limit: parseInt(req.query.limit) || 10,
+            },
+            (err, assignments) => {
+                if (err) {
+                    res.send(err);
+                }
+                res.send(assignments);
+            }
+        );
+    });
+}
+
 function getAssignments(req, res) {
 
     var aggregateQuery = Assignment.aggregate();
 
-    // Filtrage par l'attribut "rendu"
+    // Filtrage 
 
     var renduFilter = req.query.rendu ? JSON.parse(req.query.rendu) : undefined; // Valeur du filtre passée dans la requête
+    var idMatiere = req.query.idMatiere;
+    var idEtudiant = req.query.idEtudiant;
 
+    const filter = {};
 
     if (renduFilter !== undefined) {
-        aggregateQuery.match({ rendu: renduFilter });
+        filter.rendu = renduFilter;
+    }
+    if (idMatiere) {
+        filter["matiere._id"] = { $in: idMatieres };
+    }
+    if (idEtudiant) {
+        filter["auteur._id"] = { $eq: idEtudiant };
+    }
+
+    if (Object.keys(filter).length) {
+        aggregateQuery.match(filter);
     }
 
     Assignment.aggregatePaginate(aggregateQuery,
@@ -84,16 +142,17 @@ function postAssignment(req, res) {
         assignment.dateDeRendu = req.body.dateDeRendu;
         assignment.rendu = req.body.rendu;
         assignment.matiere = JSON.parse(req.body.matiere);
+        assignment.auteur = JSON.parse(req.body.auteur);
         assignment.imagePath = config.BaseUrl + req.file.path
 
         console.log("POST assignment reçu :");
         console.log(assignment)
 
-        assignment.save((err) => {
+        assignment.save((err, saved) => {
             if (err) {
                 res.send('cant post assignment ', err);
             }
-            res.json({ message: `${assignment.nom} saved!` })
+            res.json({ message: `${assignment.nom} saved!`, data: saved })
         })
 
     })
@@ -130,4 +189,5 @@ function deleteAssignment(req, res) {
 
 
 
-module.exports = { getAssignments, postAssignment, getAssignment, updateAssignment, deleteAssignment };
+module.exports = { getAssignments, postAssignment, getAssignment, updateAssignment, deleteAssignment, postAssignments };
+

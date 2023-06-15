@@ -19,7 +19,16 @@ const upload = multer({ storage: storage });
 
 // Récupérer tous les matieres (GET)
 function getMatieres(req, res) {
-    Matiere.find((err, matieres) => {
+
+    var idProfesseur = req.query.idProfesseur; // Valeur du filtre passée dans la requête
+
+    const filter = {};
+
+    if (idProfesseur) {
+        filter["professeur._id"] = { $eq: idProfesseur };
+    }
+
+    Matiere.find(filter, (err, matieres) => {
         if (err) {
             res.send(err)
         }
