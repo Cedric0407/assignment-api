@@ -57,7 +57,9 @@ app.route(prefix + '/assignments')
   .post(VerifyToken, assignment.postAssignment)
   .put(VerifyToken, assignment.updateAssignment);
 
-app.route(prefix + '/assignments/filter').post(VerifyToken, assignment.postAssignments)
+app.route(prefix + '/assignments/filter')
+  .post(VerifyToken, assignment.postAssignments)
+  .get(VerifyToken, assignment.getAssignmentsSansPagination)
 
 app.route(prefix + '/assignments/:id')
   .get(VerifyToken, assignment.getAssignment)

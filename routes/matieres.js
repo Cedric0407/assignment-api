@@ -15,6 +15,8 @@ const storage = multer.diskStorage({
     }
 });
 
+const cors = require('cors')({ origin: true })
+
 const upload = multer({ storage: storage });
 
 // Récupérer tous les matieres (GET)
@@ -30,10 +32,10 @@ function getMatieres(req, res) {
 
     Matiere.find(filter, (err, matieres) => {
         if (err) {
-            res.send(err)
+            return res.send(err)
         }
 
-        res.send(matieres);
+        return res.send(matieres);
     });
 }
 
@@ -48,9 +50,9 @@ function getMatieresAvecPagination(req, res) {
         },
         (err, matieres) => {
             if (err) {
-                res.send(err);
+                return res.send(err);
             }
-            res.send(matieres);
+            return res.send(matieres);
         }
     );
 }
@@ -59,9 +61,9 @@ function getMatieresAvecPagination(req, res) {
 function getMatiere(req, res) {
     let matiereId = req.params.id;
 
-    Matiere.findOne({ id: matiereId }, (err, matiere) => {
-        if (err) { res.send(err) }
-        res.json(matiere);
+    Matiere.findById(matiereId, (err, matiere) => {
+        if (err) { return res.send(err) }
+        return res.json(matiere);
     })
 }
 
@@ -80,32 +82,53 @@ function postMatiere(req, res) {
         let matiere = new Matiere();
         matiere.nom = req.body.nom;
         matiere.professeur = JSON.parse(req.body.professeur);
-        matiere.imagePath = config.BaseUrl + req.file.path
+        if (req.file) matiere.imagePath = config.BaseUrl + req.file.path
 
         matiere.save((err) => {
             if (err) {
-                res.send('cant post matiere ', err);
+                return res.send('cant post matiere ', err);
             }
-            res.json({ message: `${matiere.nom} saved!` })
+            return res.json({ message: `${matiere.nom} saved!` })
         })
     });
 }
 
 // Update d'un matiere (PUT)
 function updateMatiere(req, res) {
-    console.log("UPDATE recu matiere : ");
-    console.log(req.body);
 
-    Matiere.findByIdAndUpdate(req.body._id, req.body, { new: true }, (err, matiere) => {
-        if (err) {
-            console.log(err);
-            res.send(err)
-        } else {
-            res.json({ message: matiere.nom + 'updated' })
-        }
 
-        // console.log('updated ', matiere)
-    });
+    cors(req, res, () => {
+        console.log("UPDATE recu matiere : ");
+
+
+        upload.single('image')(req, res, function (err) {
+            if (err instanceof multer.MulterError) {
+                // A Multer error occurred during file upload
+                return res.status(500).send("There was a problem uploading the file.");
+            } else if (err) {
+                // An unknown error occurred during file upload
+                return res.status(500).send("There was a problem adding the information to the database.");
+            }
+
+            let matiere = {};
+
+            matiere.nom = req.body.nom;
+            matiere.professeur = JSON.parse(req.body.professeur);
+            if (req.file) matiere.imagePath = config.BaseUrl + req.file.path
+
+            Matiere.findByIdAndUpdate(req.body._id, matiere, { new: true }, (err, matiere) => {
+                if (err) {
+                    console.log(err);
+                    return res.send(err)
+                } else {
+                    return res.json({ message: matiere.nom + 'updated' })
+                }
+
+                // console.log('updated ', matiere)
+            });
+        })
+
+    })
 
 }
 
@@ -114,9 +137,9 @@ function deleteMatiere(req, res) {
 
     Matiere.findByIdAndRemove(req.params.id, (err, matiere) => {
         if (err) {
-            res.send(err);
+            return res.send(err);
         }
-        res.json({ message: `${matiere.nom} deleted` });
+        return res.json({ message: `${matiere.nom} deleted` });
     })
 }
 

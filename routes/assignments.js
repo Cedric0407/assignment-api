@@ -24,10 +24,10 @@ const upload = multer({ storage: storage });
 function getAssignmentsSansPagination(req, res) {
     Assignment.find((err, assignments) => {
         if (err) {
-            res.send(err)
+            return res.send(err)
         }
 
-        res.send(assignments);
+        return res.send(assignments);
     });
 }
 
@@ -61,14 +61,14 @@ function postAssignments(req, res) {
 
         Assignment.aggregatePaginate(aggregateQuery,
             {
-                page: parseInt(req.query.page) || 1,
-                limit: parseInt(req.query.limit) || 10,
+                page: parseInt(req.body.page) || 1,
+                limit: parseInt(req.body.limit) || 10,
             },
             (err, assignments) => {
                 if (err) {
-                    res.send(err);
+                    return res.send(err);
                 }
-                res.send(assignments);
+                return res.send(assignments);
             }
         );
     });
@@ -100,6 +100,10 @@ function getAssignments(req, res) {
         aggregateQuery.match(filter);
     }
 
+    console.log('filter' , filter)
+    console.log('page' , parseInt(req.query.page) || 1)
+    console.log('limit' , parseInt(req.query.limit) || 10)
+
     Assignment.aggregatePaginate(aggregateQuery,
         {
             page: parseInt(req.query.page) || 1,
@@ -107,9 +111,9 @@ function getAssignments(req, res) {
         },
         (err, assignments) => {
             if (err) {
-                res.send(err);
+                return res.send(err);
             }
-            res.send(assignments);
+            return res.send(assignments);
         }
     );
 }
@@ -118,9 +122,9 @@ function getAssignments(req, res) {
 function getAssignment(req, res) {
     let assignmentId = req.params.id;
 
-    Assignment.findOne({ id: assignmentId }, (err, assignment) => {
-        if (err) { res.send(err) }
-        res.json(assignment);
+    Assignment.findById(assignmentId, (err, assignment) => {
+        if (err) { return res.send(err) }
+        return res.json(assignment);
     })
 }
 
@@ -150,9 +154,9 @@ function postAssignment(req, res) {
 
         assignment.save((err, saved) => {
             if (err) {
-                res.send('cant post assignment ', err);
+                return res.send('cant post assignment ', err);
             }
-            res.json({ message: `${assignment.nom} saved!`, data: saved })
+            return res.json({ message: `${assignment.nom} saved!`, data: saved })
         })
 
     })
@@ -166,9 +170,9 @@ function updateAssignment(req, res) {
     Assignment.findByIdAndUpdate(req.body._id, req.body, { new: true }, (err, assignment) => {
         if (err) {
             console.log(err);
-            res.send(err)
+            return res.send(err)
         } else {
-            res.json({ message: assignment.nom + 'updated' })
+            return res.json({ message: assignment.nom + 'updated' })
         }
 
         // console.log('updated ', assignment)
@@ -181,13 +185,13 @@ function deleteAssignment(req, res) {
 
     Assignment.findByIdAndRemove(req.params.id, (err, assignment) => {
         if (err) {
-            res.send(err);
+            return res.send(err);
         }
-        res.json({ message: `${assignment.nom} deleted` });
+        return res.json({ message: `${assignment.nom} deleted` });
     })
 }
 
 
 
-module.exports = { getAssignments, postAssignment, getAssignment, updateAssignment, deleteAssignment, postAssignments };
+module.exports = { getAssignments, postAssignment, getAssignment, updateAssignment, deleteAssignment, postAssignments, getAssignmentsSansPagination };
 

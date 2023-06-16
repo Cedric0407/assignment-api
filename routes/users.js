@@ -41,14 +41,14 @@ function postUser(req, res) {
             imagePath: config.BaseUrl + req.file.path
         };
 
-        if(req.body.password){
+        if (req.body.password) {
             newUser.password = bcrypt.hashSync(req.body.password, 8)
         }
 
         User.create(newUser,
             function (err, user) {
                 if (err) return res.status(500).send("There was a problem adding the information to the database.");
-                res.status(200).send(user);
+                return res.status(200).send(user);
             });
     })
 }
@@ -56,7 +56,7 @@ function postUser(req, res) {
 function getUsers(req, res) {
     User.find({}, function (err, users) {
         if (err) return res.status(500).send("There was a problem finding the users.");
-        res.status(200).send(users);
+        return res.status(200).send(users);
     });
 }
 // GETS A SINGLE USER FROM THE DATABASE
@@ -64,7 +64,7 @@ function getUser(req, res) {
     User.findById(req.params.id, function (err, user) {
         if (err) return res.status(500).send("There was a problem finding the user.");
         if (!user) return res.status(404).send("No user found.");
-        res.status(200).send(user);
+        return res.status(200).send(user);
     });
 }
 
@@ -72,15 +72,39 @@ function getUser(req, res) {
 function deleteUser(req, res) {
     User.findByIdAndRemove(req.params.id, function (err, user) {
         if (err) return res.status(500).send("There was a problem deleting the user.");
-        res.status(200).send("User: " + user.name + " was deleted.");
+        return res.status(200).send("User: " + user.name + " was deleted.");
     });
 }
 // UPDATES A SINGLE USER IN THE DATABASE
 function updateUser(req, res) {
-    User.findByIdAndUpdate(req.params.id, req.body, { new: true }, function (err, user) {
-        if (err) return res.status(500).send("There was a problem updating the user.");
-        res.status(200).send(user);
-    });
+
+    upload.single('image')(req, res, function (err) {
+        if (err instanceof multer.MulterError) {
+            // A Multer error occurred during file upload
+            return res.status(500).send("There was a problem uploading the file.");
+        } else if (err) {
+            // An unknown error occurred during file upload
+            return res.status(500).send("There was a problem adding the information to the database.");
+        }
+
+        const newUser = {
+            nom: req.body.nom,
+            email: req.body.email,
+            role: req.body.role,
+
+        };
+        if (req.file) newUser.imagePath = config.BaseUrl + req.file.path
+
+        if (req.body.password) {
+            newUser.password = bcrypt.hashSync(req.body.password, 8)
+        }
+
+        User.findByIdAndUpdate(req.body._id, newUser, { new: true }, function (err, user) {
+            if (err) return res.status(500).send("There was a problem updating the user.");
+            return res.status(200).send(user);
+        });
+
+    })
 }
 
 module.exports = { postUser, getUsers, getUser, deleteUser, updateUser };
