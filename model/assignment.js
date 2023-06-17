@@ -12,6 +12,7 @@ let AssignmentSchema = Schema({
     remarques: String,
     matiere: { type: mongoose.Schema.Types.Object, ref: 'Matiere' },
     auteur: { type: mongoose.Schema.Types.Object, ref: 'User' },
+    filePath: String
 });
 
 AssignmentSchema.plugin(aggregatePaginate);

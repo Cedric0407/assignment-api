@@ -59,6 +59,8 @@ function postAssignments(req, res) {
             aggregateQuery.match(filter);
         }
 
+        aggregateQuery.sort({ dateDeRendu: -1 });
+
         Assignment.aggregatePaginate(aggregateQuery,
             {
                 page: parseInt(req.body.page) || 1,
@@ -100,9 +102,9 @@ function getAssignments(req, res) {
         aggregateQuery.match(filter);
     }
 
-    console.log('filter' , filter)
-    console.log('page' , parseInt(req.query.page) || 1)
-    console.log('limit' , parseInt(req.query.limit) || 10)
+    console.log('filter', filter)
+    console.log('page', parseInt(req.query.page) || 1)
+    console.log('limit', parseInt(req.query.limit) || 10)
 
     Assignment.aggregatePaginate(aggregateQuery,
         {
@@ -147,7 +149,7 @@ function postAssignment(req, res) {
         assignment.rendu = req.body.rendu;
         assignment.matiere = JSON.parse(req.body.matiere);
         assignment.auteur = JSON.parse(req.body.auteur);
-        assignment.imagePath = config.BaseUrl + req.file.path
+        assignment.filePath = config.BaseUrl + req.file.path
 
         console.log("POST assignment reçu :");
         console.log(assignment)
