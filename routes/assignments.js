@@ -149,7 +149,7 @@ function postAssignment(req, res) {
         assignment.rendu = req.body.rendu;
         assignment.matiere = JSON.parse(req.body.matiere);
         assignment.auteur = JSON.parse(req.body.auteur);
-        assignment.filePath = config.BaseUrl + req.file.path
+        assignment.filePath = req.file.path
 
         console.log("POST assignment reçu :");
         console.log(assignment)

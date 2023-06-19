@@ -82,7 +82,7 @@ function postMatiere(req, res) {
         let matiere = new Matiere();
         matiere.nom = req.body.nom;
         matiere.professeur = JSON.parse(req.body.professeur);
-        if (req.file) matiere.imagePath = config.BaseUrl + req.file.path
+        if (req.file) matiere.imagePath = req.file.path
 
         matiere.save((err) => {
             if (err) {
@@ -114,7 +114,7 @@ function updateMatiere(req, res) {
 
             matiere.nom = req.body.nom;
             matiere.professeur = JSON.parse(req.body.professeur);
-            if (req.file) matiere.imagePath = config.BaseUrl + req.file.path
+            if (req.file) matiere.imagePath = req.file.path
 
             Matiere.findByIdAndUpdate(req.body._id, matiere, { new: true }, (err, matiere) => {
                 if (err) {

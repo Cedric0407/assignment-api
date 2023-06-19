@@ -38,7 +38,7 @@ function postUser(req, res) {
             nom: req.body.nom,
             email: req.body.email,
             role: req.body.role,
-            imagePath: config.BaseUrl + req.file.path
+            imagePath: req.file.path
         };
 
         if (req.body.password) {
@@ -93,7 +93,7 @@ function updateUser(req, res) {
             role: req.body.role,
 
         };
-        if (req.file) newUser.imagePath = config.BaseUrl + req.file.path
+        if (req.file) newUser.imagePath = req.file.path
 
         if (req.body.password) {
             newUser.password = bcrypt.hashSync(req.body.password, 8)
