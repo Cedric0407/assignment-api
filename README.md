@@ -1,7 +1,7 @@
 # MBDSMagascar2022_2023_api
 
 # Gestion de rendu du devoir
-## Description du projt
+## Description du projet
 -Le projet vise à créer une plateforme permettant aux étudiants de soumettre leurs devoirs par matière et aux professeurs de les noter directement. Il est composé de trois espaces distincts : un espace dédié à l'administration, un espace réservé aux professeurs et un espace réservé aux étudiants.
 
 ## Contribution
