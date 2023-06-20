@@ -133,32 +133,36 @@ function getAssignment(req, res) {
 // Ajout d'un assignment (POST)
 function postAssignment(req, res) {
 
-    upload.single('file')(req, res, function (err) {
-        if (err instanceof multer.MulterError) {
-            // A Multer error occurred during file upload
-            return res.status(500).send("There was a problem uploading the file.");
-        } else if (err) {
-            // An unknown error occurred during file upload
-            return res.status(500).send("There was a problem adding the information to the database.");
-        }
+    cors(req, res, () => {
 
-        let assignment = new Assignment();
-        assignment.id = req.body.id;
-        assignment.nom = req.body.nom;
-        assignment.dateDeRendu = req.body.dateDeRendu;
-        assignment.rendu = req.body.rendu;
-        assignment.matiere = JSON.parse(req.body.matiere);
-        assignment.auteur = JSON.parse(req.body.auteur);
-        assignment.filePath = req.file.path
-
-        console.log("POST assignment reçu :");
-        console.log(assignment)
-
-        assignment.save((err, saved) => {
-            if (err) {
-                return res.send('cant post assignment ', err);
+        upload.single('file')(req, res, function (err) {
+            if (err instanceof multer.MulterError) {
+                // A Multer error occurred during file upload
+                return res.status(500).send("There was a problem uploading the file.");
+            } else if (err) {
+                // An unknown error occurred during file upload
+                return res.status(500).send("There was a problem adding the information to the database.");
             }
-            return res.json({ message: `${assignment.nom} saved!`, data: saved })
+
+            let assignment = new Assignment();
+            assignment.id = req.body.id;
+            assignment.nom = req.body.nom;
+            assignment.dateDeRendu = req.body.dateDeRendu;
+            assignment.rendu = req.body.rendu;
+            assignment.matiere = JSON.parse(req.body.matiere);
+            assignment.auteur = JSON.parse(req.body.auteur);
+            assignment.filePath = req.file.path
+
+            console.log("POST assignment reçu :");
+            console.log(assignment)
+
+            assignment.save((err, saved) => {
+                if (err) {
+                    return res.send('cant post assignment ', err);
+                }
+                return res.json({ message: `${assignment.nom} saved!`, data: saved })
+            })
+
         })
 
     })

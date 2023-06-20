@@ -70,26 +70,29 @@ function getMatiere(req, res) {
 // Ajout d'un matiere (POST)
 function postMatiere(req, res) {
 
-    upload.single('image')(req, res, function (err) {
-        if (err instanceof multer.MulterError) {
-            // A Multer error occurred during file upload
-            return res.status(500).send("There was a problem uploading the file.");
-        } else if (err) {
-            // An unknown error occurred during file upload
-            return res.status(500).send("There was a problem adding the information to the database.");
-        }
+    cors(req, res, () => {
 
-        let matiere = new Matiere();
-        matiere.nom = req.body.nom;
-        matiere.professeur = JSON.parse(req.body.professeur);
-        if (req.file) matiere.imagePath = req.file.path
-
-        matiere.save((err) => {
-            if (err) {
-                return res.send('cant post matiere ', err);
+        upload.single('image')(req, res, function (err) {
+            if (err instanceof multer.MulterError) {
+                // A Multer error occurred during file upload
+                return res.status(500).send("There was a problem uploading the file.");
+            } else if (err) {
+                // An unknown error occurred during file upload
+                return res.status(500).send("There was a problem adding the information to the database.");
             }
-            return res.json({ message: `${matiere.nom} saved!` })
-        })
+
+            let matiere = new Matiere();
+            matiere.nom = req.body.nom;
+            matiere.professeur = JSON.parse(req.body.professeur);
+            if (req.file) matiere.imagePath = req.file.path
+
+            matiere.save((err) => {
+                if (err) {
+                    return res.send('cant post matiere ', err);
+                }
+                return res.json({ message: `${matiere.nom} saved!` })
+            })
+        });
     });
 }
 

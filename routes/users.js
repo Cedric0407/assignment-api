@@ -9,6 +9,7 @@ var config = require('../constant/config');
 var bcrypt = require('bcryptjs');
 
 const multer = require('multer');
+const cors = require('cors')({ origin: true })
 
 // Configuration de Multer pour gérer l'upload des images
 const storage = multer.diskStorage({
@@ -26,42 +27,47 @@ const upload = multer({ storage: storage });
 
 // CREATES A NEW USER
 function postUser(req, res) {
-    upload.single('image')(req, res, function (err) {
-        if (err instanceof multer.MulterError) {
-            // A Multer error occurred during file upload
-            return res.status(500).send("There was a problem uploading the file.");
-        } else if (err) {
-            // An unknown error occurred during file upload
-            return res.status(500).send("There was a problem adding the information to the database.");
-        }
-        const newUser = {
-            nom: req.body.nom,
-            email: req.body.email,
-            role: req.body.role,
-            imagePath: req.file.path
-        };
 
-        if (req.body.password) {
-            newUser.password = bcrypt.hashSync(req.body.password, 8)
-        }
+    cors(req, res, () => {
 
-        User.create(newUser,
-            function (err, user) {
-                if (err) return res.status(500).send("There was a problem adding the information to the database.");
-                return res.status(200).send(user);
-            });
+        upload.single('image')(req, res, function (err) {
+            if (err instanceof multer.MulterError) {
+                // A Multer error occurred during file upload
+                return res.status(500).send("There was a problem uploading the file.");
+            } else if (err) {
+                // An unknown error occurred during file upload
+                return res.status(500).send("There was a problem adding the information to the database.");
+            }
+            const newUser = {
+                nom: req.body.nom,
+                email: req.body.email,
+                role: req.body.role,
+                imagePath: req.file.path
+            };
+
+            if (req.body.password) {
+                newUser.password = bcrypt.hashSync(req.body.password, 8)
+            }
+
+            User.create(newUser,
+                function (err, user) {
+                    if (err) return res.status(500).send("There was a problem adding the information to the database.");
+                    return res.status(200).send(user);
+                });
+        })
+
     })
 }
 // RETURNS ALL THE USERS IN THE DATABASE
 function getUsers(req, res) {
-    User.find({}, function (err, users) {
+    User.find({}, '-password', function (err, users) {
         if (err) return res.status(500).send("There was a problem finding the users.");
         return res.status(200).send(users);
     });
 }
 // GETS A SINGLE USER FROM THE DATABASE
 function getUser(req, res) {
-    User.findById(req.params.id, function (err, user) {
+    User.findById(req.params.id, { password: 0 }, function (err, user) {
         if (err) return res.status(500).send("There was a problem finding the user.");
         if (!user) return res.status(404).send("No user found.");
         return res.status(200).send(user);
@@ -78,31 +84,35 @@ function deleteUser(req, res) {
 // UPDATES A SINGLE USER IN THE DATABASE
 function updateUser(req, res) {
 
-    upload.single('image')(req, res, function (err) {
-        if (err instanceof multer.MulterError) {
-            // A Multer error occurred during file upload
-            return res.status(500).send("There was a problem uploading the file.");
-        } else if (err) {
-            // An unknown error occurred during file upload
-            return res.status(500).send("There was a problem adding the information to the database.");
-        }
+    cors(req, res, () => {
 
-        const newUser = {
-            nom: req.body.nom,
-            email: req.body.email,
-            role: req.body.role,
+        upload.single('image')(req, res, function (err) {
+            if (err instanceof multer.MulterError) {
+                // A Multer error occurred during file upload
+                return res.status(500).send("There was a problem uploading the file.");
+            } else if (err) {
+                // An unknown error occurred during file upload
+                return res.status(500).send("There was a problem adding the information to the database.");
+            }
 
-        };
-        if (req.file) newUser.imagePath = req.file.path
+            const newUser = {
+                nom: req.body.nom,
+                email: req.body.email,
+                role: req.body.role,
 
-        if (req.body.password) {
-            newUser.password = bcrypt.hashSync(req.body.password, 8)
-        }
+            };
+            if (req.file) newUser.imagePath = req.file.path
 
-        User.findByIdAndUpdate(req.body._id, newUser, { new: true }, function (err, user) {
-            if (err) return res.status(500).send("There was a problem updating the user.");
-            return res.status(200).send(user);
-        });
+            if (req.body.password) {
+                newUser.password = bcrypt.hashSync(req.body.password, 8)
+            }
+
+            User.findByIdAndUpdate(req.body._id, newUser, { new: true }, function (err, user) {
+                if (err) return res.status(500).send("There was a problem updating the user.");
+                return res.status(200).send(user);
+            });
+
+        })
 
     })
 }
